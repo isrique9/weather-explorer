@@ -1,23 +1,21 @@
 <template>
   <div class="app-container">
     <header>
-      <h1> <i class="fa-solid fa-cloud-sun"></i> Clima Bom</h1>
+      <h1>☀️ Clima com Estilo</h1>
       <p>Previsão do tempo + recomendação de roupa</p>
     </header>
 
-    <!-- Seção 1: Busca -->
     <section class="search-section">
-      <SearchSection />
+      <SearchSection @weather-data="handleWeatherData" />
     </section>
 
-    <!-- Seção 2: Card de previsão -->
     <section class="weather-section">
-      <WeatherCard />
+      <WeatherCard :weather="weatherData" />
+      <HourlyCarousel v-if="weatherData" :weather="weatherData" />
     </section>
 
-    <!-- Seção 3: Card de recomendação + outfits -->
     <section class="recommendation-section">
-      <RecommendationCard />
+      <RecommendationCard :weather="weatherData" />
     </section>
 
     <footer>
@@ -27,10 +25,17 @@
 </template>
 
 <script setup>
-// Por enquanto, vamos importar os componentes vazios (vamos criá-los depois)
+import { ref } from 'vue'
 import SearchSection from './components/SearchSection.vue'
 import WeatherCard from './components/WeatherCard.vue'
+import HourlyCarousel from './components/HourlyCarousel.vue'
 import RecommendationCard from './components/RecommendationCard.vue'
+
+const weatherData = ref(null)
+
+function handleWeatherData(data) {
+  weatherData.value = data
+}
 </script>
 
 <style scoped>
