@@ -1,8 +1,8 @@
 <template>
   <div class="app-container">
     <header>
-      <h1>☀️ Clima com Estilo</h1>
-      <p>Previsão do tempo + recomendação de roupa</p>
+      <h1>☀️ Clima Agora</h1>
+      <p>Previsão do tempo para a sua cidade com poucos cliques.</p>
     </header>
 
     <section class="search-section">
@@ -12,10 +12,6 @@
     <section class="weather-section">
       <WeatherCard :weather="weatherData" />
       <HourlyCarousel v-if="weatherData" :weather="weatherData" />
-    </section>
-
-    <section class="recommendation-section">
-      <RecommendationCard :weather="weatherData" />
     </section>
 
     <footer>
@@ -29,7 +25,6 @@ import { ref } from 'vue'
 import SearchSection from './components/SearchSection.vue'
 import WeatherCard from './components/WeatherCard.vue'
 import HourlyCarousel from './components/HourlyCarousel.vue'
-import RecommendationCard from './components/RecommendationCard.vue'
 
 const weatherData = ref(null)
 
@@ -83,20 +78,11 @@ header p {
 
 /* Cada seção terá um card visual */
 .search-section,
-.weather-section,
-.recommendation-section {
-  background: rgba(255, 255, 255, 0.85);
+.weather-section {
+  background: rgb(244, 249, 255);
   backdrop-filter: blur(8px);
   border-radius: 2rem;
   padding: 1.5rem;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
-}
-
-.search-section:hover,
-.weather-section:hover,
-.recommendation-section:hover {
-  transform: translateY(-4px);
 }
 
 footer {

@@ -14,6 +14,8 @@
         v-model="cityName"
         placeholder="Digite o nome da cidade..."
         @keyup.enter="searchByCity"
+        @focus="selectInputText"
+        @click="selectInputText"
         :disabled="loading"
       />
       <button 
@@ -37,6 +39,11 @@ const emit = defineEmits(['weather-data'])
 const cityName = ref('')
 const loading = ref(false)
 const errorMessage = ref('')
+
+// Função para selecionar todo o texto do input ao clicar/focar
+function selectInputText(event) {
+  event.target.select()
+}
 
 // Função para buscar dados climáticos a partir de lat/lon
 async function fetchWeather(lat, lon) {
