@@ -1,6 +1,6 @@
 <template>
   <div class="weather-card">
-    <h2>🌤️ Previsão de hoje</h2>
+    <h2>Previsão de hoje</h2>
     <div v-if="weather" class="weather-info">
       <div class="weather-main">
         <div class="weather-icon">
@@ -16,20 +16,20 @@
 
       <div class="weather-details">
         <div class="detail-item">
-          <span class="detail-label"><strong>🌡️ Máx / Mín:</strong> {{ weather.today.max }}° / {{ weather.today.min }}°</span>
+          <span class="detail-label"><strong><i class="fa-solid fa-temperature-high text-danger"></i> Máx / Mín:</strong> {{ weather.today.max }}° / {{ weather.today.min }}°</span>
         </div>
         <div class="detail-item">
-          <span class="detail-label"><strong>💨 Vento: </strong>{{ weather.today.wind }} km/h</span>
+          <span class="detail-label"><strong><i class="fa-solid fa-wind text-primary"></i> Vento: </strong>{{ weather.today.wind }} km/h</span>
           <span class="detail-value"></span>
         </div>
         <div class="detail-item">
-          <span class="detail-label"><strong>📅 Condição: </strong>{{ getWeatherDescription(weather.today.weathercode) }}</span>
+          <span class="detail-label"><strong><i class="fa-solid fa-calendar text-success" ></i> Condição: </strong>{{ getWeatherDescription(weather.today.weathercode) }}</span>
           <span class="detail-value"></span>
         </div>
       </div>
     </div>
     <div v-else class="weather-info placeholder">
-      <p>🔍 Use a busca acima para ver o clima</p>
+      <p>Use a busca acima para ver o clima</p>
     </div>
   </div>
 </template>
@@ -142,5 +142,6 @@ function getWeatherDescription(code) {
   text-align: center;
   color: #6c7a8a;
   background: #f8fafc;
+  user-select: none;
 }
 </style>

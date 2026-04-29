@@ -1,6 +1,6 @@
 <template>
   <div class="hourly-forecast" v-if="hasHourlyData">
-    <h3>📊 Previsão por hora</h3>
+    <h3> Previsão por hora</h3>
     <div class="carousel-container">
       <div class="carousel" ref="carouselRef">
         <div 
@@ -17,8 +17,8 @@
       </div>
     </div>
     <div class="carousel-controls">
-      <button @click="scrollLeft" class="scroll-btn">◀ Anterior</button>
-      <button @click="scrollRight" class="scroll-btn">Próximo ▶</button>
+      <button @click="scrollLeft" class="scroll-btn"><i class="fa-solid fa-angle-left"></i> Anterior</button>
+      <button @click="scrollRight" class="scroll-btn">Próximo <i class="fa-solid fa-angle-right"></i></button>
     </div>
   </div>
   <div v-else class="hourly-forecast">
@@ -125,6 +125,7 @@ function scrollRight() {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   transition: transform 0.1s ease;
   border: 1px solid #edf2f7;
+  user-select: none;
 }
 .hour-card:hover {
   transform: translateY(-2px);

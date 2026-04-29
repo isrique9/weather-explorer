@@ -1,6 +1,6 @@
 <template>
   <div class="search-box">
-    <h2>📍 Localização</h2>
+    <h2>🌤️ Localização</h2>
     <button 
       class="location-btn" 
       @click="getUserLocation"
@@ -28,19 +28,15 @@
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
   </div>
 </template>
-
+<!-- SearchSection.vue - Modificar a função fetchWeather -->
 <script setup>
 import { ref } from 'vue'
 
-// Evento que será emitido para o App.vue
 const emit = defineEmits(['weather-data'])
-
-// Estado local
 const cityName = ref('')
 const loading = ref(false)
 const errorMessage = ref('')
 
-// Função para selecionar todo o texto do input ao clicar/focar
 function selectInputText(event) {
   event.target.select()
 }
@@ -51,9 +47,23 @@ async function fetchWeather(lat, lon) {
   errorMessage.value = ''
   
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode,windspeed_10m_max&timezone=auto&forecast_days=2`
-    const response = await fetch(url)
-    if (!response.ok) throw new Error('Erro ao buscar clima')
+    // URL corrigida - removido forecast_days=2 (padrão é 7)
+    // e adicionado current_weather corretamente
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode,windspeed_10m_max&timezone=auto`
+
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      mode: 'cors', // Explicitamente pedindo CORS
+      headers: {
+        'Accept': 'application/json',
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+    
     const data = await response.json()
     
     // Verifica se os dados horários existem
@@ -65,25 +75,21 @@ async function fetchWeather(lat, lon) {
     const now = new Date()
     const currentHour = now.getHours()
     
-    // Encontra o índice da primeira ocorrência com a mesma hora (considerando fuso horário local)
-    // A API retorna horários em UTC, mas com timezone=auto já converte para local.
+    // Encontra o índice da primeira ocorrência com a mesma hora
     const startIndex = data.hourly.time.findIndex(time => {
       const hour = new Date(time).getHours()
       return hour === currentHour
     })
     
-    // Se não encontrar, começa do índice 0
     const start = startIndex !== -1 ? startIndex : 0
-    const hoursToShow = 24 // quantidade de horas que queremos exibir
+    const hoursToShow = 24
     
-    // Monta o objeto hourly com os próximos 'hoursToShow' registros
     const hourlyData = {
       time: data.hourly.time.slice(start, start + hoursToShow),
       temperature_2m: data.hourly.temperature_2m.slice(start, start + hoursToShow),
       weathercode: data.hourly.weathercode.slice(start, start + hoursToShow)
     }
     
-    // Se o array ficou vazio, usa os primeiros 24 como fallback
     if (hourlyData.time.length === 0) {
       hourlyData.time = data.hourly.time.slice(0, hoursToShow)
       hourlyData.temperature_2m = data.hourly.temperature_2m.slice(0, hoursToShow)
@@ -108,19 +114,16 @@ async function fetchWeather(lat, lon) {
       location: { lat, lon }
     }
     
-    // Log para verificar a estrutura
-    console.log('Dados enviados para o App:', weatherData)
-    
     emit('weather-data', weatherData)
   } catch (err) {
-    console.error(err)
-    errorMessage.value = err.message
+    console.error('Erro detalhado:', err)
+    errorMessage.value = `Erro ao buscar clima: ${err.message}`
   } finally {
     loading.value = false
   }
 }
 
-// Geolocalização
+// Resto do código permanece igual...
 function getUserLocation() {
   if (!navigator.geolocation) {
     errorMessage.value = 'Seu navegador não suporta geolocalização.'
@@ -154,7 +157,6 @@ function getUserLocation() {
   )
 }
 
-// Busca por nome da cidade (usando Open-Meteo Geocoding)
 async function searchByCity() {
   if (!cityName.value.trim()) return
   
@@ -162,7 +164,6 @@ async function searchByCity() {
   errorMessage.value = ''
   
   try {
-    // API de geocodificação do Open-Meteo
     const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName.value)}&count=1&language=pt&format=json`
     const response = await fetch(geoUrl)
     const data = await response.json()
@@ -172,7 +173,6 @@ async function searchByCity() {
     }
     
     const { latitude, longitude, name, country } = data.results[0]
-    // Opcional: exibir o nome completo da cidade encontrada
     console.log(`Cidade encontrada: ${name}, ${country}`)
     
     await fetchWeather(latitude, longitude)

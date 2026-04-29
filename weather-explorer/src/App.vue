@@ -4,6 +4,10 @@
       <h1>☀️ Clima Agora</h1>
       <p>Previsão do tempo para a sua cidade com poucos cliques.</p>
     </header>
+    
+    <section class="sun-section" v-if="showSun">
+      <Sun />
+    </section>
 
     <section class="search-section">
       <SearchSection @weather-data="handleWeatherData" />
@@ -21,12 +25,18 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import SearchSection from './components/SearchSection.vue'
 import WeatherCard from './components/WeatherCard.vue'
 import HourlyCarousel from './components/HourlyCarousel.vue'
+import Sun from './components/Sun.vue'
 
 const weatherData = ref(null)
+
+// Computed property para verificar se deve mostrar o sol
+const showSun = computed(() => {
+  return weatherData.value && weatherData.value.today.weathercode === 0
+})
 
 function handleWeatherData(data) {
   weatherData.value = data
@@ -85,6 +95,14 @@ header p {
   padding: 1.5rem;
 }
 
+/* Estilo para a seção do sol */
+.sun-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
 footer {
   text-align: center;
   font-size: 0.75rem;
@@ -100,6 +118,9 @@ footer {
   }
   header h1 {
     font-size: 1.6rem;
+  }
+  .sun-section {
+    min-height: 200px;
   }
 }
 </style>
