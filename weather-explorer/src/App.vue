@@ -1,14 +1,16 @@
 <template>
+  <BackgroundEffect :weatherCode="weatherData?.today?.weathercode" />
+  
   <div class="app-container">
     <header>
-      <h1>☀️ Clima Agora</h1>
-      <p>Previsão do tempo para a sua cidade com poucos cliques.</p>
+      <h1 :style="titleStyle">
+        ☀️ Clima Agora
+      </h1>
+      <p :style="{ color: paragraphColor }">
+        Previsão do tempo para a sua cidade com poucos cliques.
+      </p>
     </header>
     
-    <section class="sun-section" v-if="showSun">
-      <Sun />
-    </section>
-
     <section class="search-section">
       <SearchSection @weather-data="handleWeatherData" />
     </section>
@@ -29,18 +31,51 @@ import { ref, computed } from 'vue'
 import SearchSection from './components/SearchSection.vue'
 import WeatherCard from './components/WeatherCard.vue'
 import HourlyCarousel from './components/HourlyCarousel.vue'
-import Sun from './components/Sun.vue'
+import BackgroundEffect from './components/BackgroundEffect.vue'
 
 const weatherData = ref(null)
-
-// Computed property para verificar se deve mostrar o sol
-const showSun = computed(() => {
-  return weatherData.value && weatherData.value.today.weathercode === 0
-})
 
 function handleWeatherData(data) {
   weatherData.value = data
 }
+
+// Gradiente dinâmico para o título baseado no código do tempo
+const titleGradient = computed(() => {
+  const code = weatherData.value?.today?.weathercode
+  if (code === undefined || code === null) return 'linear-gradient(135deg, #1e3c72, #2b5297)'
+  
+  if (code === 0) return 'linear-gradient(135deg, #0f2b4d, #c2410c)'               
+  if (code === 1 || code === 2 || code === 3) return 'linear-gradient(135deg, #0f172a, #334155)' 
+  if (code === 45 || code === 48) return 'linear-gradient(135deg, #1e293b, #475569)'            
+  if ((code >= 51 && code <= 65) || (code >= 80 && code <= 82)) return 'linear-gradient(135deg, #e0f2fe, #bae6fd)' 
+  if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) return 'linear-gradient(135deg, #0f172a, #1e3a8a)' 
+  if (code >= 95 && code <= 99) return 'linear-gradient(135deg, #fde047, #f97316)'               
+  
+  return 'linear-gradient(135deg, #1e3c72, #2b5297)'
+})
+
+const paragraphColor = computed(() => {
+  const code = weatherData.value?.today?.weathercode
+  if (code === undefined || code === null) return '#1e293b'
+  
+  if (code === 0) return '#0f2b4d'          
+  if (code === 1 || code === 2 || code === 3) return '#f1f5f9' 
+  if (code === 45 || code === 48) return '#0f172a'              
+  if ((code >= 51 && code <= 65) || (code >= 80 && code <= 82)) return '#f0f0f0' 
+  if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) return '#0f172a'  
+  if (code >= 95 && code <= 99) return '#fef08a'                
+  
+  return '#1e293b'
+})
+
+const titleStyle = computed(() => ({
+  backgroundImage: titleGradient.value,
+  backgroundClip: 'text',
+  WebkitBackgroundClip: 'text',
+  color: 'transparent',
+  userSelect: 'none',
+  cursor: 'default'
+}))
 </script>
 
 <style scoped>
@@ -53,17 +88,18 @@ function handleWeatherData(data) {
 
 body {
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(145deg, #d4e6f1 0%, #f0f9ff 100%);
   min-height: 100vh;
 }
 
 .app-container {
+  position: relative;
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  z-index: 1;
 }
 
 header {
@@ -73,41 +109,36 @@ header {
 
 header h1 {
   font-size: 2.2rem;
-  background: linear-gradient(135deg, #1e3c72, #2b5297);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
   letter-spacing: -0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  display: inline-block;
 }
 
 header p {
-  color: #2c3e50;
   margin-top: 0.25rem;
-  font-weight: 500;
+  font-weight: 600;
+  text-shadow: 0 1px 1px rgba(255,255,255,0.3);
+  transition: color 0.3s ease;
 }
 
-/* Cada seção terá um card visual */
+/* Glassmorphism cards */
 .search-section,
 .weather-section {
-  background: rgb(244, 249, 255);
-  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(12px);
   border-radius: 2rem;
   padding: 1.5rem;
-}
-
-/* Estilo para a seção do sol */
-.sun-section {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 300px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
 footer {
   text-align: center;
   font-size: 0.75rem;
-  color: #4a627a;
+  color: #1e293b;
   margin-top: 1rem;
+  font-weight: 500;
+  text-shadow: 0 1px 1px rgba(255,255,255,0.3);
 }
 
 /* Responsividade */
@@ -118,9 +149,6 @@ footer {
   }
   header h1 {
     font-size: 1.6rem;
-  }
-  .sun-section {
-    min-height: 200px;
   }
 }
 </style>

@@ -28,7 +28,7 @@
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
   </div>
 </template>
-<!-- SearchSection.vue - Modificar a função fetchWeather -->
+
 <script setup>
 import { ref } from 'vue'
 
@@ -190,7 +190,8 @@ async function searchByCity() {
   gap: 1rem;
 }
 .location-btn {
-  background: #2c3e50;
+  background: rgba(44, 62, 80, 0.85);
+  backdrop-filter: blur(4px);
   color: white;
   border: none;
   padding: 0.75rem;
@@ -200,7 +201,7 @@ async function searchByCity() {
   transition: background 0.2s;
 }
 .location-btn:hover:not(:disabled) {
-  background: #1a2a3a;
+  background: rgba(26, 42, 58, 0.9);
 }
 .location-btn:disabled {
   opacity: 0.6;
@@ -214,14 +215,16 @@ async function searchByCity() {
   flex: 1;
   padding: 0.75rem;
   border-radius: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.7);
   font-size: 1rem;
+  backdrop-filter: blur(4px);
 }
 .manual-search input:disabled {
-  background-color: #f0f0f0;
+  background-color: rgba(240, 240, 240, 0.5);
 }
 .manual-search button {
-  background: #3498db;
+  background: rgba(52, 152, 219, 0.9);
   color: white;
   border: none;
   padding: 0 1.2rem;
@@ -230,15 +233,17 @@ async function searchByCity() {
   transition: background 0.2s;
 }
 .manual-search button:hover:not(:disabled) {
-  background: #077cca;
+  background: rgba(7, 124, 202, 0.95);
 }
 .manual-search button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 .error {
-  color: #e74c3c;
+  color: #b91c1c;
   font-size: 0.85rem;
   margin-top: 0.25rem;
+  font-weight: 600;
+  text-shadow: 0 0 2px white;
 }
 </style>

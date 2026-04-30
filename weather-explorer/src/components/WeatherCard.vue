@@ -77,71 +77,67 @@ function getWeatherDescription(code) {
 .weather-card h2 {
   font-size: 1.4rem;
   font-weight: 600;
-  color: #1e2f3e;
+  color: #0f172a;
   margin-bottom: 1rem;
   padding-left: 0.75rem;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.4);
 }
 
 .weather-info {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.75);
   border-radius: 1.25rem;
   padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(4px);
 }
 
+/* rest of the styles remain unchanged */
 .weather-main {
   text-align: center;
   margin-bottom: 1.5rem;
 }
-
 .weather-icon {
   font-size: 3rem;
   margin-bottom: 0.5rem;
 }
-
 .weather-temp {
   font-size: 3rem;
   font-weight: 700;
-  color: #1e4668;
+  color: #0f2b4f;
   line-height: 1;
 }
-
 .weather-desc {
   font-size: 1rem;
-  color: #4a627a;
+  color: #1e2f3e;
   margin-top: 0.25rem;
   text-transform: capitalize;
+  font-weight: 500;
 }
-
 .weather-details {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 1rem;
-  border-top: 1px solid #e9ecef;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
   padding-top: 1rem;
   justify-content: center;
   align-items: center;
 }
-
 .detail-item {
   text-align: center;
   font-size: 0.9rem;
 }
-
 .detail-label {
-  color: #5d6f83;
-  font-weight: 500;
+  color: #0f172a;
+  font-weight: 600;
 }
-
 .detail-value {
   font-weight: 600;
   color: #1e3c72;
 }
-
 .placeholder {
   text-align: center;
-  color: #6c7a8a;
-  background: #f8fafc;
+  color: #334155;
+  background: rgba(248, 250, 252, 0.8);
   user-select: none;
 }
 </style>
