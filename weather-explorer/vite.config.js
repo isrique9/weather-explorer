@@ -10,6 +10,7 @@ export default defineConfig({
     vue(),
     vueDevTools(),
   ],
+  base: '/weather-explorer-app',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
