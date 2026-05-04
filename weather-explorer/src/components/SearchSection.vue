@@ -22,7 +22,7 @@
         <input 
           type="text" 
           v-model="stateName"
-          placeholder="Estado (ex: SP)"
+          placeholder="Estado (ex: SP) *"
           @keyup.enter="searchByCity"
           :disabled="loading"
           @focus="handleInputFocus"
@@ -30,7 +30,7 @@
         <input 
           type="text" 
           v-model="countryName"
-          placeholder="País (ex: Brasil)"
+          placeholder="País (ex: Brasil) *"
           @keyup.enter="searchByCity"
           :disabled="loading"
           @focus="handleInputFocus"
@@ -38,7 +38,7 @@
       </div>
       <button 
         @click="searchByCity"
-        :disabled="loading || !cityName.trim()"
+        :disabled="loading || !cityName.trim() || !stateName.trim() || !countryName.trim()"
       >
         Buscar
       </button>
