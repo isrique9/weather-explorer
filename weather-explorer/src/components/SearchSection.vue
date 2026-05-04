@@ -1,6 +1,6 @@
 <template>
   <div class="search-box">
-    <h2>🌤️ Localização</h2>
+    <h2>🌤️ Buscar Localização</h2>
     <button 
       class="location-btn" 
       @click="getUserLocation"
@@ -256,7 +256,6 @@ async function searchByCity() {
     if (country) displayParts.push(country)
     const locationName = displayParts.join(', ')
 
-    console.log(`Local encontrado (filtrado): ${locationName} (lat=${latitude}, lon=${longitude})`)
     await fetchWeather(latitude, longitude, locationName)
   } catch (err) {
     errorMessage.value = err.message

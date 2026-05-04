@@ -1,7 +1,7 @@
 <!-- HourlyCarousel.vue (modificado) -->
 <template>
   <div class="hourly-forecast" v-if="hasHourlyData">
-    <h3> Previsão por hora</h3>
+    <h3> Previsão por Hora</h3>
     <div class="carousel-container">
       <div class="carousel" ref="carouselRef">
         <div 

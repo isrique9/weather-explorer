@@ -29,6 +29,9 @@
       @day-selected="selectedDayDate = $event"
     />
 
+    <MapComponent :location="weatherData?.location" />
+
+
     <footer>
       <small>Dados de previsão: Open-Meteo</small>
     </footer>
@@ -42,6 +45,7 @@ import WeatherCard from './components/WeatherCard.vue'
 import HourlyCarousel from './components/HourlyCarousel.vue'
 import WeeklyChart from './components/WeeklyChart.vue'
 import BackgroundEffect from './components/BackgroundEffect.vue'
+import MapComponent from './components/Map.vue'
 
 const weatherData = ref(null)
 const selectedDayDate = ref(null)     // data ISO do dia clicado no gráfico

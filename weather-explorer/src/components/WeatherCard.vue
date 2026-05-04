@@ -1,6 +1,6 @@
 <template>
   <div class="weather-card">
-    <h2>Previsão de hoje</h2>
+    <h2>Previsão de Hoje</h2>
 
     <div v-if="weather && weather.location" class="location-header">
        {{ weather.location.name }}

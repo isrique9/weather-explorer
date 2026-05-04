@@ -2,7 +2,7 @@
 <template>
   <div class="weekly-chart" v-if="dailyData && dailyData.time">
     <div class="chart-header">
-      <h3>📊 Previsão para 7 dias</h3>
+      <h3>Próximos 7 Dias</h3>
       <div class="unit-toggle">
         <button @click="toggleUnit" :class="{ active: unit === 'c' }">°C</button>
         <button @click="toggleUnit" :class="{ active: unit === 'f' }">°F</button>
@@ -24,9 +24,8 @@
 
 <script setup>
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
-import { Chart, registerables } from 'chart.js'
+import Chart from 'chart.js/auto'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
-Chart.register(...registerables, ChartDataLabels)
 
 const props = defineProps({
   weather: Object   // objeto completo retornado da API
