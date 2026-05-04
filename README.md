@@ -41,7 +41,7 @@ Aplicação web moderna de previsão do tempo que combina dados meteorológicos 
 
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/clima-agora.git
+git clone https://github.com/isrique9/weather-explorer.git
 cd clima-agora
 
 # Instale as dependências
