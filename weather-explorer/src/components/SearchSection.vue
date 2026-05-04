@@ -8,16 +8,34 @@
     >
       {{ loading ? 'Buscando...' : 'Usar minha localização' }}
     </button>
+
     <div class="manual-search">
-      <input 
-        type="text" 
-        v-model="cityName"
-        placeholder="Digite o nome da cidade..."
-        @keyup.enter="searchByCity"
-        @focus="selectInputText"
-        @click="selectInputText"
-        :disabled="loading"
-      />
+      <div class="search-fields">
+        <input 
+          type="text" 
+          v-model="cityName"
+          placeholder="Cidade *"
+          @keyup.enter="searchByCity"
+          :disabled="loading"
+          @focus="handleInputFocus"
+        />
+        <input 
+          type="text" 
+          v-model="stateName"
+          placeholder="Estado (ex: SP)"
+          @keyup.enter="searchByCity"
+          :disabled="loading"
+          @focus="handleInputFocus"
+        />
+        <input 
+          type="text" 
+          v-model="countryName"
+          placeholder="País (ex: Brasil)"
+          @keyup.enter="searchByCity"
+          :disabled="loading"
+          @focus="handleInputFocus"
+        />
+      </div>
       <button 
         @click="searchByCity"
         :disabled="loading || !cityName.trim()"
@@ -25,6 +43,7 @@
         Buscar
       </button>
     </div>
+
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
   </div>
 </template>
@@ -34,53 +53,52 @@ import { ref } from 'vue'
 
 const emit = defineEmits(['weather-data'])
 const cityName = ref('')
+const stateName = ref('')
+const countryName = ref('')
 const loading = ref(false)
 const errorMessage = ref('')
 
-function selectInputText(event) {
+// Mapeamento de siglas para nomes completos de estados do Brasil
+const estadoMap = {
+  'ac': 'acre', 'al': 'alagoas', 'ap': 'amapá', 'am': 'amazonas',
+  'ba': 'bahia', 'ce': 'ceará', 'df': 'distrito federal', 'es': 'espírito santo',
+  'go': 'goiás', 'ma': 'maranhão', 'mt': 'mato grosso', 'ms': 'mato grosso do sul',
+  'mg': 'minas gerais', 'pa': 'pará', 'pb': 'paraíba', 'pr': 'paraná',
+  'pe': 'pernambuco', 'pi': 'piauí', 'rj': 'rio de janeiro', 'rn': 'rio grande do norte',
+  'rs': 'rio grande do sul', 'ro': 'rondônia', 'rr': 'roraima', 'sc': 'santa catarina',
+  'sp': 'são paulo', 'se': 'sergipe', 'to': 'tocantins'
+}
+
+// Seleciona todo o texto do input ao focar
+function handleInputFocus(event) {
   event.target.select()
 }
 
-// Função para buscar dados climáticos a partir de lat/lon
-async function fetchWeather(lat, lon) {
+// Função para buscar dados climáticos a partir de lat/lon e um nome opcional
+async function fetchWeather(lat, lon, locationName = null) {
   loading.value = true
   errorMessage.value = ''
   
   try {
-    // URL corrigida - removido forecast_days=2 (padrão é 7)
-    // e adicionado current_weather corretamente
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode,windspeed_10m_max&timezone=auto`
 
-    
     const response = await fetch(url, {
       method: 'GET',
-      mode: 'cors', // Explicitamente pedindo CORS
-      headers: {
-        'Accept': 'application/json',
-      }
+      mode: 'cors',
+      headers: { 'Accept': 'application/json' }
     })
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
     
     const data = await response.json()
     
-    // Verifica se os dados horários existem
     if (!data.hourly || !data.hourly.time) {
       throw new Error('Dados de previsão por hora não disponíveis')
     }
     
-    // Pega a hora atual do sistema
     const now = new Date()
     const currentHour = now.getHours()
-    
-    // Encontra o índice da primeira ocorrência com a mesma hora
-    const startIndex = data.hourly.time.findIndex(time => {
-      const hour = new Date(time).getHours()
-      return hour === currentHour
-    })
-    
+    const startIndex = data.hourly.time.findIndex(time => new Date(time).getHours() === currentHour)
     const start = startIndex !== -1 ? startIndex : 0
     const hoursToShow = 24
     
@@ -111,7 +129,11 @@ async function fetchWeather(lat, lon) {
         weathercode: data.daily.weathercode[1]
       },
       hourly: hourlyData,
-      location: { lat, lon }
+      location: {
+        lat,
+        lon,
+        name: locationName || `Coordenadas: ${lat.toFixed(2)}, ${lon.toFixed(2)}`
+      }
     }
     
     emit('weather-data', weatherData)
@@ -123,7 +145,7 @@ async function fetchWeather(lat, lon) {
   }
 }
 
-// Resto do código permanece igual...
+// Função para geolocalização
 function getUserLocation() {
   if (!navigator.geolocation) {
     errorMessage.value = 'Seu navegador não suporta geolocalização.'
@@ -136,7 +158,7 @@ function getUserLocation() {
   navigator.geolocation.getCurrentPosition(
     (position) => {
       const { latitude, longitude } = position.coords
-      fetchWeather(latitude, longitude)
+      fetchWeather(latitude, longitude) 
     },
     (error) => {
       loading.value = false
@@ -157,25 +179,76 @@ function getUserLocation() {
   )
 }
 
+// Busca por cidade + estado + país
 async function searchByCity() {
-  if (!cityName.value.trim()) return
-  
+  const cidade = cityName.value.trim()
+  if (!cidade) return
+
   loading.value = true
   errorMessage.value = ''
-  
+
   try {
-    const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName.value)}&count=1&language=pt&format=json`
+    // Busca apenas pela cidade (retorna até 10 resultados)
+    const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cidade)}&count=10&language=pt&format=json`
     const response = await fetch(geoUrl)
     const data = await response.json()
     
     if (!data.results || data.results.length === 0) {
-      throw new Error('Cidade não encontrada')
+      throw new Error(`Nenhum local encontrado para "${cidade}"`)
     }
-    
-    const { latitude, longitude, name, country } = data.results[0]
-    console.log(`Cidade encontrada: ${name}, ${country}`)
-    
-    await fetchWeather(latitude, longitude)
+
+    let resultados = data.results
+    let estadoDigitado = stateName.value.trim().toLowerCase()
+    const paisDigitado = countryName.value.trim().toLowerCase()
+
+    // Se o estado digitado for uma sigla, converte para nome completo
+    if (estadoDigitado && estadoMap[estadoDigitado]) {
+      estadoDigitado = estadoMap[estadoDigitado]
+    }
+
+    // Filtra por estado e país
+    if (estadoDigitado || paisDigitado) {
+      resultados = resultados.filter(local => {
+        let match = true
+        if (estadoDigitado) {
+          const estadoLocalRaw = (local.admin1 || '').toLowerCase()
+          // Tenta normalizar o estado local também (caso ele venha como sigla)
+          let estadoLocalNormalizado = estadoLocalRaw
+          for (const [sigla, nome] of Object.entries(estadoMap)) {
+            if (estadoLocalRaw === sigla) {
+              estadoLocalNormalizado = nome
+              break
+            }
+          }
+          // Verifica se o estado digitado está contido no nome original ou normalizado
+          match = match && (estadoLocalRaw.includes(estadoDigitado) || estadoLocalNormalizado.includes(estadoDigitado))
+        }
+        if (paisDigitado) {
+          const paisLocal = (local.country || '').toLowerCase()
+          match = match && paisLocal.includes(paisDigitado)
+        }
+        return match
+      })
+    }
+
+    if (resultados.length === 0) {
+      let sugestao = `Nenhum local encontrado para "${cidade}"`
+      if (estadoDigitado) sugestao += ` com estado "${stateName.value.trim()}"`
+      if (paisDigitado) sugestao += ` com país "${countryName.value.trim()}"`
+      sugestao += `. Tente buscar apenas a cidade ou verifique os nomes.`
+      throw new Error(sugestao)
+    }
+
+    const resultado = resultados[0]
+    const { latitude, longitude, name, admin1, country } = resultado
+
+    const displayParts = [name]
+    if (admin1) displayParts.push(admin1)
+    if (country) displayParts.push(country)
+    const locationName = displayParts.join(', ')
+
+    console.log(`Local encontrado (filtrado): ${locationName} (lat=${latitude}, lon=${longitude})`)
+    await fetchWeather(latitude, longitude, locationName)
   } catch (err) {
     errorMessage.value = err.message
     loading.value = false
@@ -209,10 +282,17 @@ async function searchByCity() {
 }
 .manual-search {
   display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.search-fields {
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
-.manual-search input {
+.search-fields input {
   flex: 1;
+  min-width: 120px;
   padding: 0.75rem;
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,0.5);
@@ -220,17 +300,18 @@ async function searchByCity() {
   font-size: 1rem;
   backdrop-filter: blur(4px);
 }
-.manual-search input:disabled {
+.search-fields input:disabled {
   background-color: rgba(240, 240, 240, 0.5);
 }
 .manual-search button {
   background: rgba(52, 152, 219, 0.9);
   color: white;
   border: none;
-  padding: 0 1.2rem;
+  padding: 0.75rem;
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.2s;
+  font-weight: bold;
 }
 .manual-search button:hover:not(:disabled) {
   background: rgba(7, 124, 202, 0.95);

@@ -1,6 +1,11 @@
 <template>
   <div class="weather-card">
     <h2>Previsão de hoje</h2>
+
+    <div v-if="weather && weather.location" class="location-header">
+       {{ weather.location.name }}
+    </div>
+    
     <div v-if="weather" class="weather-info">
       <div class="weather-main">
         <div class="weather-icon">
@@ -20,11 +25,9 @@
         </div>
         <div class="detail-item">
           <span class="detail-label"><strong><i class="fa-solid fa-wind text-primary"></i> Vento: </strong>{{ weather.today.wind }} km/h</span>
-          <span class="detail-value"></span>
         </div>
         <div class="detail-item">
-          <span class="detail-label"><strong><i class="fa-solid fa-calendar text-success" ></i> Condição: </strong>{{ getWeatherDescription(weather.today.weathercode) }}</span>
-          <span class="detail-value"></span>
+          <span class="detail-label"><strong><i class="fa-solid fa-calendar text-success"></i> Condição: </strong>{{ getWeatherDescription(weather.today.weathercode) }}</span>
         </div>
       </div>
     </div>
@@ -39,7 +42,6 @@ defineProps({
   weather: Object
 })
 
-// Mesma função de ícone do HourlyCarousel (pode ser movida para um utilitário)
 function getWeatherIcon(code) {
   const icons = {
     0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
@@ -83,6 +85,22 @@ function getWeatherDescription(code) {
   text-shadow: 0 1px 2px rgba(255,255,255,0.4);
 }
 
+/* NOVO ESTILO PARA A LOCALIZAÇÃO */
+.location-header {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(4px);
+  border-radius: 2rem;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #0c4a6e;
+  text-align: center;
+  display: inline-block;
+  width: auto;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
 .weather-info {
   background: rgba(255, 255, 255, 0.75);
   border-radius: 1.25rem;
@@ -91,7 +109,6 @@ function getWeatherDescription(code) {
   backdrop-filter: blur(4px);
 }
 
-/* rest of the styles remain unchanged */
 .weather-main {
   text-align: center;
   margin-bottom: 1.5rem;
@@ -129,10 +146,6 @@ function getWeatherDescription(code) {
 .detail-label {
   color: #0f172a;
   font-weight: 600;
-}
-.detail-value {
-  font-weight: 600;
-  color: #1e3c72;
 }
 .placeholder {
   text-align: center;

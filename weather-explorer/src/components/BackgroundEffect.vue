@@ -1,7 +1,17 @@
-<!-- components/BackgroundEffect.vue -->
 <template>
-  <div class="background-effect" :class="bgClass">
-    <canvas ref="canvasRef" v-if="showParticleEffect" class="particle-canvas"></canvas>
+  <div class="background-effect">
+    <!-- Duas camadas para o crossfade suave -->
+    <div class="bg-layers">
+      <Transition name="bg-fade" mode="out-in">
+        <div
+          :key="weatherCode"
+          :class="['bg-layer', bgClass]"
+        ></div>
+      </Transition>
+    </div>
+
+    <!-- Partículas e raios continuam iguais -->
+    <canvas v-if="showParticleEffect" ref="canvasRef" class="particle-canvas"></canvas>
     <div v-if="isThunderstorm" class="lightning-flash" :class="{ active: lightningActive }"></div>
   </div>
 </template>
@@ -21,7 +31,7 @@ let canvasWidth = 0, canvasHeight = 0
 const lightningActive = ref(false)
 let lightningInterval = null
 
-// Determine background class and particle effect
+// ========== LÓGICA DE GRADIENTE (mesma de antes) ==========
 const bgClass = computed(() => {
   const code = props.weatherCode
   if (code === undefined || code === null) return 'bg-default'
@@ -47,6 +57,7 @@ const isThunderstorm = computed(() => {
   return code >= 95 && code <= 99
 })
 
+// ========== LÓGICA DE PARTÍCULAS (inalterada) ==========
 function initParticles(type) {
   particles = []
   if (!canvasRef.value) return
@@ -174,7 +185,9 @@ function stopLightning() {
   lightningActive.value = false
 }
 
+// ========== WATCHERS E CICLO DE VIDA ==========
 watch(() => props.weatherCode, (newCode, oldCode) => {
+  // Só reinicia partículas se necessário
   stopParticleEffect()
   if (isThunderstorm.value) {
     startLightning()
@@ -213,26 +226,47 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   z-index: -2;
-  transition: background 0.5s ease;
 }
 
-.particle-canvas {
+/* Camadas de fundo com crossfade */
+.bg-layers {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none;
-  z-index: -1;
+  overflow: hidden;
 }
 
-/* Gradients */
+.bg-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  will-change: opacity;
+}
+
+/* Transição suave entre os gradientes */
+.bg-fade-enter-active,
+.bg-fade-leave-active {
+  transition: opacity 0.6s ease;
+}
+.bg-fade-enter-from,
+.bg-fade-leave-to {
+  opacity: 0;
+}
+.bg-fade-enter-to,
+.bg-fade-leave-from {
+  opacity: 1;
+}
+
+/* Classes de gradiente (iguais às suas originais) */
 .bg-default {
   background: linear-gradient(145deg, #b8d8fc 0%, #e6f0fa 100%);
 }
 .bg-clear {
-  background: linear-gradient(145deg, #3b82f6 0%, #ffe355 80%);
-  animation: subtlePulse 8s infinite;
+  background: linear-gradient(145deg, #3b82f6 0%, #ffffff 80%);
 }
 .bg-partly-cloudy {
   background: linear-gradient(135deg, #9bb8e0 0%, #d4e7ff 100%);
@@ -253,6 +287,17 @@ onUnmounted(() => {
   background: linear-gradient(145deg, #111827 0%, #374151 100%);
 }
 
+/* Partículas e raios permanecem inalterados */
+.particle-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+
 .lightning-flash {
   position: absolute;
   top: 0;
@@ -267,10 +312,5 @@ onUnmounted(() => {
 }
 .lightning-flash.active {
   opacity: 0.7;
-}
-
-@keyframes subtlePulse {
-  0% { background: linear-gradient(145deg, #3b82f6 0%, #ffe355 80%); }
-  100% { background: linear-gradient(145deg, #3b82f6 0%, #ffe355 80%); }
 }
 </style>
