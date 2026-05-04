@@ -10,7 +10,7 @@
           :class="{ 'current-hour': index === 0 }"
         >
           <div class="hour-time">{{ formatHour(hour) }}</div>
-          <div class="hour-icon">{{ getWeatherIcon(hourlyData.weathercode[index]) }}</div>
+          <div class="hour-icon">{{ getWeatherIconWithTime(hourlyData.weathercode[index], hour) }}</div>
           <div class="hour-temp">{{ hourlyData.temperature_2m[index] }}°C</div>
           <div class="hour-desc">{{ getShortWeatherDesc(hourlyData.weathercode[index]) }}</div>
         </div>
@@ -50,8 +50,19 @@ function formatHour(timeString) {
   return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0')
 }
 
-function getWeatherIcon(code) {
-  const icons = {
+// Função auxiliar para determinar se é noite (entre 20h e 5h59)
+function isNight(timeString) {
+  if (!timeString) return false
+  const hour = new Date(timeString).getHours()
+  return hour >= 20 || hour < 6
+}
+
+// Versão noturna do ícone para códigos específicos
+function getWeatherIconWithTime(code, timeString) {
+  const night = isNight(timeString)
+  
+  // Mapeamento diurno padrão
+  const dayIcons = {
     0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
     45: '🌫️', 48: '🌫️',
     51: '🌦️', 53: '🌦️', 55: '🌧️',
@@ -63,7 +74,16 @@ function getWeatherIcon(code) {
     85: '🌨️', 86: '🌨️',
     95: '⛈️', 96: '⛈️', 99: '⛈️'
   }
-  return icons[code] || '🌡️'
+  
+  // Versão noturna para céu limpo (0) e parcialmente nublado (1, 2)
+  if (night) {
+    if (code === 0) return '🌙'           // Noite limpa
+    if (code === 1) return '🌤️'          // Principalmente limpo à noite (lua com poucas nuvens)
+    if (code === 2) return '🌙☁️'         // Parcialmente nublado à noite
+    // Para outros códigos (nuvens, chuva, neve, etc.) mantém o mesmo ícone dia/noite
+  }
+  
+  return dayIcons[code] || '🌡️'
 }
 
 function getShortWeatherDesc(code) {

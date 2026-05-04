@@ -1,5 +1,8 @@
 <template>
-  <BackgroundEffect :weatherCode="weatherData?.today?.weathercode" />
+  <BackgroundEffect 
+    :weatherCode="weatherData?.today?.weathercode" 
+    :isNight="isNightTime"
+  />
   
   <div class="app-container">
     <header>
@@ -39,7 +42,35 @@ function handleWeatherData(data) {
   weatherData.value = data
 }
 
-// Gradiente dinâmico para o título baseado no código do tempo
+// ========== LÓGICA PARA DETERMINAR SE É NOITE ==========
+const isNightTime = computed(() => {
+  if (!weatherData.value) return false
+
+  // Tenta obter horário atual a partir dos dados horários (primeiro horário)
+  let currentTime = null
+  if (weatherData.value.hourly?.time?.length) {
+    currentTime = new Date(weatherData.value.hourly.time[0])
+  } else {
+    // Fallback: horário local do navegador
+    currentTime = new Date()
+  }
+
+  // Tenta usar sunrise/sunset da API (se disponíveis)
+  const sunriseStr = weatherData.value.daily?.sunrise?.[0]
+  const sunsetStr = weatherData.value.daily?.sunset?.[0]
+
+  if (sunriseStr && sunsetStr) {
+    const sunrise = new Date(sunriseStr)
+    const sunset = new Date(sunsetStr)
+    return currentTime < sunrise || currentTime > sunset
+  }
+
+  // Fallback: intervalo fixo (20h às 5h59)
+  const hour = currentTime.getHours()
+  return hour >= 20 || hour < 6
+})
+
+// ========== GRADIENTES DO TÍTULO E COR DO PARÁGRAFO (opcional, mantido) ==========
 const titleGradient = computed(() => {
   const code = weatherData.value?.today?.weathercode
   if (code === undefined || code === null) return 'linear-gradient(135deg, #1e3c72, #2b5297)'
@@ -51,7 +82,7 @@ const titleGradient = computed(() => {
   if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) return 'linear-gradient(135deg, #0f172a, #1e3a8a)' 
   if (code >= 95 && code <= 99) return 'linear-gradient(135deg, #fde047, #f97316)'               
   
-  return 'linear-gradient(135deg, #1e3c72, #2b5297)'
+  return 'linear-gradient(135deg, #1e3c72, #2b5297'
 })
 
 const paragraphColor = computed(() => {

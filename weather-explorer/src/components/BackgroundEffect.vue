@@ -4,7 +4,7 @@
     <div class="bg-layers">
       <Transition name="bg-fade" mode="out-in">
         <div
-          :key="weatherCode"
+          :key="`${weatherCode}-${isNight}`"
           :class="['bg-layer', bgClass]"
         ></div>
       </Transition>
@@ -20,7 +20,8 @@
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 
 const props = defineProps({
-  weatherCode: Number
+  weatherCode: Number,
+  isNight: Boolean     // NOVA PROP
 })
 
 const canvasRef = ref(null)
@@ -31,18 +32,20 @@ let canvasWidth = 0, canvasHeight = 0
 const lightningActive = ref(false)
 let lightningInterval = null
 
-// ========== LÓGICA DE GRADIENTE (mesma de antes) ==========
+// ========== LÓGICA DE GRADIENTE (COM VERSÃO NOTURNA) ==========
 const bgClass = computed(() => {
   const code = props.weatherCode
-  if (code === undefined || code === null) return 'bg-default'
-  if (code === 0) return 'bg-clear'
-  if (code === 1 || code === 2) return 'bg-partly-cloudy'
-  if (code === 3) return 'bg-overcast'
-  if (code === 45 || code === 48) return 'bg-fog'
-  if ((code >= 51 && code <= 65) || (code >= 80 && code <= 82)) return 'bg-rain'
-  if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) return 'bg-snow'
-  if (code >= 95 && code <= 99) return 'bg-thunderstorm'
-  return 'bg-default'
+  const night = props.isNight
+
+  if (code === undefined || code === null) return night ? 'bg-default-night' : 'bg-default'
+  if (code === 0) return night ? 'bg-clear-night' : 'bg-clear'
+  if (code === 1 || code === 2) return night ? 'bg-partly-cloudy-night' : 'bg-partly-cloudy'
+  if (code === 3) return night ? 'bg-overcast-night' : 'bg-overcast'
+  if (code === 45 || code === 48) return night ? 'bg-fog-night' : 'bg-fog'
+  if ((code >= 51 && code <= 65) || (code >= 80 && code <= 82)) return night ? 'bg-rain-night' : 'bg-rain'
+  if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) return night ? 'bg-snow-night' : 'bg-snow'
+  if (code >= 95 && code <= 99) return night ? 'bg-thunderstorm-night' : 'bg-thunderstorm'
+  return night ? 'bg-default-night' : 'bg-default'
 })
 
 const showParticleEffect = computed(() => {
@@ -187,7 +190,6 @@ function stopLightning() {
 
 // ========== WATCHERS E CICLO DE VIDA ==========
 watch(() => props.weatherCode, (newCode, oldCode) => {
-  // Só reinicia partículas se necessário
   stopParticleEffect()
   if (isThunderstorm.value) {
     startLightning()
@@ -261,7 +263,7 @@ onUnmounted(() => {
   opacity: 1;
 }
 
-/* Classes de gradiente (iguais às suas originais) */
+/* ========== GRADIENTES DIURNOS (originais) ========== */
 .bg-default {
   background: linear-gradient(145deg, #b8d8fc 0%, #e6f0fa 100%);
 }
@@ -287,7 +289,33 @@ onUnmounted(() => {
   background: linear-gradient(145deg, #111827 0%, #374151 100%);
 }
 
-/* Partículas e raios permanecem inalterados */
+/* ========== GRADIENTES NOTURNOS (adicionados) ========== */
+.bg-default-night {
+  background: linear-gradient(145deg, #1a2a3a 0%, #0f1a24 100%);
+}
+.bg-clear-night {
+  background: linear-gradient(145deg, #0a1f3e 0%, #1a2f4e 80%);
+}
+.bg-partly-cloudy-night {
+  background: linear-gradient(135deg, #1e293b 0%, #2d3a4e 100%);
+}
+.bg-overcast-night {
+  background: linear-gradient(135deg, #0f172a 0%, #1a2335 100%);
+}
+.bg-fog-night {
+  background: linear-gradient(135deg, #1e2a3a 0%, #2d3e4e 100%);
+}
+.bg-rain-night {
+  background: linear-gradient(145deg, #0a1120 0%, #142436 100%);
+}
+.bg-snow-night {
+  background: linear-gradient(135deg, #1e2937 0%, #2d3a4a 100%);
+}
+.bg-thunderstorm-night {
+  background: linear-gradient(145deg, #050a12 0%, #101826 100%);
+}
+
+/* Partículas e raios */
 .particle-canvas {
   position: absolute;
   top: 0;
