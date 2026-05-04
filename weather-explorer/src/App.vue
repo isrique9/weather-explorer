@@ -1,3 +1,4 @@
+<!-- App.vue (trecho relevante) -->
 <template>
   <BackgroundEffect 
     :weatherCode="weatherData?.today?.weathercode" 
@@ -6,12 +7,8 @@
   
   <div class="app-container">
     <header>
-      <h1 :style="titleStyle">
-        ☀️ Clima Agora
-      </h1>
-      <p :style="{ color: paragraphColor }">
-        Previsão do tempo para a sua cidade com poucos cliques.
-      </p>
+      <h1 :style="titleStyle">☀️ Clima Agora</h1>
+      <p :style="{ color: paragraphColor }">Previsão do tempo para a sua cidade com poucos cliques.</p>
     </header>
     
     <section class="search-section">
@@ -20,8 +17,17 @@
 
     <section class="weather-section">
       <WeatherCard :weather="weatherData" />
-      <HourlyCarousel v-if="weatherData" :weather="weatherData" />
+      <HourlyCarousel 
+        v-if="weatherData" 
+        :weather="weatherData" 
+        :selectedDate="selectedDayDate"
+      />
     </section>
+
+    <WeeklyChart 
+      :weather="weatherData" 
+      @day-selected="selectedDayDate = $event"
+    />
 
     <footer>
       <small>Dados de previsão: Open-Meteo</small>
@@ -34,38 +40,33 @@ import { ref, computed } from 'vue'
 import SearchSection from './components/SearchSection.vue'
 import WeatherCard from './components/WeatherCard.vue'
 import HourlyCarousel from './components/HourlyCarousel.vue'
+import WeeklyChart from './components/WeeklyChart.vue'
 import BackgroundEffect from './components/BackgroundEffect.vue'
 
 const weatherData = ref(null)
+const selectedDayDate = ref(null)     // data ISO do dia clicado no gráfico
 
 function handleWeatherData(data) {
   weatherData.value = data
+  selectedDayDate.value = null        // reset ao buscar nova cidade
 }
 
-// ========== LÓGICA PARA DETERMINAR SE É NOITE ==========
+// Lógica de noite (mantida igual)
 const isNightTime = computed(() => {
   if (!weatherData.value) return false
-
-  // Tenta obter horário atual a partir dos dados horários (primeiro horário)
   let currentTime = null
   if (weatherData.value.hourly?.time?.length) {
     currentTime = new Date(weatherData.value.hourly.time[0])
   } else {
-    // Fallback: horário local do navegador
     currentTime = new Date()
   }
-
-  // Tenta usar sunrise/sunset da API (se disponíveis)
   const sunriseStr = weatherData.value.daily?.sunrise?.[0]
   const sunsetStr = weatherData.value.daily?.sunset?.[0]
-
   if (sunriseStr && sunsetStr) {
     const sunrise = new Date(sunriseStr)
     const sunset = new Date(sunsetStr)
     return currentTime < sunrise || currentTime > sunset
   }
-
-  // Fallback: intervalo fixo (20h às 5h59)
   const hour = currentTime.getHours()
   return hour >= 20 || hour < 6
 })

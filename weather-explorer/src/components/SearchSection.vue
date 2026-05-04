@@ -128,6 +128,15 @@ async function fetchWeather(lat, lon, locationName = null) {
         wind: data.daily.windspeed_10m_max[1],
         weathercode: data.daily.weathercode[1]
       },
+      daily: {
+        time: data.daily.time,
+        temperature_2m_max: data.daily.temperature_2m_max,
+        temperature_2m_min: data.daily.temperature_2m_min,
+        weathercode: data.daily.weathercode,
+        windspeed_10m_max: data.daily.windspeed_10m_max,
+        precipitation_probability_max: data.daily.precipitation_probability_max,
+        uv_index_max: data.daily.uv_index_max
+      },
       hourly: hourlyData,
       location: {
         lat,

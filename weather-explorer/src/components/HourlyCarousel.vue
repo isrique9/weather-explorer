@@ -1,18 +1,19 @@
+<!-- HourlyCarousel.vue (modificado) -->
 <template>
   <div class="hourly-forecast" v-if="hasHourlyData">
     <h3> Previsão por hora</h3>
     <div class="carousel-container">
       <div class="carousel" ref="carouselRef">
         <div 
-          v-for="(hour, index) in hourlyData.time" 
-          :key="index"
+          v-for="(hour, idx) in filteredHourly.time" 
+          :key="idx"
           class="hour-card"
-          :class="{ 'current-hour': index === 0 }"
+          :class="{ 'current-hour': idx === 0 && !selectedDate }"
         >
           <div class="hour-time">{{ formatHour(hour) }}</div>
-          <div class="hour-icon">{{ getWeatherIconWithTime(hourlyData.weathercode[index], hour) }}</div>
-          <div class="hour-temp">{{ hourlyData.temperature_2m[index] }}°C</div>
-          <div class="hour-desc">{{ getShortWeatherDesc(hourlyData.weathercode[index]) }}</div>
+          <div class="hour-icon">{{ getWeatherIconWithTime(filteredHourly.weathercode[idx], hour) }}</div>
+          <div class="hour-temp">{{ filteredHourly.temperature_2m[idx] }}°C</div>
+          <div class="hour-desc">{{ getShortWeatherDesc(filteredHourly.weathercode[idx]) }}</div>
         </div>
       </div>
     </div>
@@ -30,19 +31,67 @@
 import { ref, computed, watch } from 'vue'
 
 const props = defineProps({
-  weather: { type: Object, required: true }
+  weather: { type: Object, required: true },
+  selectedDate: { type: String, default: null } // ISO string YYYY-MM-DD
 })
 
 const carouselRef = ref(null)
 const hourlyData = ref({ time: [], temperature_2m: [], weathercode: [] })
+const filteredHourly = ref({ time: [], temperature_2m: [], weathercode: [] })
 
+// Observa o objeto weather completo para extrair hourly
 watch(() => props.weather, (newWeather) => {
   if (newWeather && newWeather.hourly) {
     hourlyData.value = newWeather.hourly
+    updateFilteredHourly()
   }
 }, { immediate: true, deep: true })
 
-const hasHourlyData = computed(() => hourlyData.value.time?.length > 0)
+// Observa mudanças na data selecionada
+watch(() => props.selectedDate, () => {
+  updateFilteredHourly()
+})
+
+function updateFilteredHourly() {
+  if (!hourlyData.value.time || hourlyData.value.time.length === 0) {
+    filteredHourly.value = { time: [], temperature_2m: [], weathercode: [] }
+    return
+  }
+
+  if (props.selectedDate) {
+    // Filtra apenas as horas do dia selecionado
+    const targetDate = props.selectedDate.slice(0, 10) // YYYY-MM-DD
+    const indices = []
+    for (let i = 0; i < hourlyData.value.time.length; i++) {
+      const hourDate = hourlyData.value.time[i].slice(0, 10)
+      if (hourDate === targetDate) {
+        indices.push(i)
+      }
+    }
+    if (indices.length > 0) {
+      filteredHourly.value = {
+        time: indices.map(i => hourlyData.value.time[i]),
+        temperature_2m: indices.map(i => hourlyData.value.temperature_2m[i]),
+        weathercode: indices.map(i => hourlyData.value.weathercode[i])
+      }
+      return
+    }
+  }
+
+  // Fallback: comportamento original (24 horas a partir da hora atual)
+  const now = new Date()
+  const currentHour = now.getHours()
+  const startIndex = hourlyData.value.time.findIndex(time => new Date(time).getHours() === currentHour)
+  const start = startIndex !== -1 ? startIndex : 0
+  const hoursToShow = 24
+  filteredHourly.value = {
+    time: hourlyData.value.time.slice(start, start + hoursToShow),
+    temperature_2m: hourlyData.value.temperature_2m.slice(start, start + hoursToShow),
+    weathercode: hourlyData.value.weathercode.slice(start, start + hoursToShow)
+  }
+}
+
+const hasHourlyData = computed(() => filteredHourly.value.time?.length > 0)
 
 function formatHour(timeString) {
   if (!timeString) return '--:--'
@@ -50,18 +99,14 @@ function formatHour(timeString) {
   return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0')
 }
 
-// Função auxiliar para determinar se é noite (entre 20h e 5h59)
 function isNight(timeString) {
   if (!timeString) return false
   const hour = new Date(timeString).getHours()
   return hour >= 20 || hour < 6
 }
 
-// Versão noturna do ícone para códigos específicos
 function getWeatherIconWithTime(code, timeString) {
   const night = isNight(timeString)
-  
-  // Mapeamento diurno padrão
   const dayIcons = {
     0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
     45: '🌫️', 48: '🌫️',
@@ -74,15 +119,9 @@ function getWeatherIconWithTime(code, timeString) {
     85: '🌨️', 86: '🌨️',
     95: '⛈️', 96: '⛈️', 99: '⛈️'
   }
-  
-  // Versão noturna para céu limpo (0) e parcialmente nublado (1, 2)
-  if (night) {
-    if (code === 0) return '🌙'           // Noite limpa
-    if (code === 1) return '🌤️'          // Principalmente limpo à noite (lua com poucas nuvens)
-    if (code === 2) return '🌙☁️'         // Parcialmente nublado à noite
-    // Para outros códigos (nuvens, chuva, neve, etc.) mantém o mesmo ícone dia/noite
-  }
-  
+  if (night && (code === 0)) return '🌙'
+  if (night && code === 1) return '🌤️'
+  if (night && code === 2) return '🌙☁️'
   return dayIcons[code] || '🌡️'
 }
 
@@ -108,14 +147,15 @@ function scrollRight() {
 </script>
 
 <style scoped>
+/* (mesmo CSS anterior, sem alterações) */
 .hourly-forecast h3 {
   font-size: 1.2rem;
   font-weight: 600;
   color: #1e2f3e;
   margin-bottom: 1rem;
+  margin-top: 1rem;
   padding-left: 0.75rem;
 }
-
 .carousel {
   display: flex;
   gap: 0.8rem;
@@ -135,7 +175,6 @@ function scrollRight() {
   background: #94a3b8;
   border-radius: 10px;
 }
-
 .hour-card {
   min-width: 85px;
   background: white;
@@ -151,12 +190,10 @@ function scrollRight() {
   transform: translateY(-2px);
   border-color: #cbd5e1;
 }
-
 .hour-card.current-hour {
   background: #f8fafc;
   box-shadow: 0 4px 10px rgba(52, 152, 219, 0.1);
 }
-
 .hour-time {
   font-weight: 600;
   font-size: 0.8rem;
@@ -180,7 +217,6 @@ function scrollRight() {
   overflow-x: hidden;
   text-overflow: ellipsis;
 }
-
 .carousel-controls {
   display: flex;
   justify-content: center;
