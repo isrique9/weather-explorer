@@ -101,10 +101,6 @@ Nenhuma chave de API é necessária – ambos os serviços são abertos e gratui
 - Animações mais ricas (neve com acúmulo, raios com som)
 - Testes unitários (Vitest)
 
-## 📄 Licença
-
-Este projeto é distribuído sob a licença MIT. Sinta-se livre para usar, modificar e distribuir.
-
 ## 👤 Autor
 
 Desenvolvido por [Israel Henrique](https://github.com/isrique9) – [henriqueisraeul790@gmail.com](mailto:henriqueisraeul790@gmail.com)  
